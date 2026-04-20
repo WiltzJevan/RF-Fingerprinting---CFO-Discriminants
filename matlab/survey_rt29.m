@@ -1,9 +1,13 @@
 function survey_rt29(center_freq_hz, sample_rate_hz, gain_db)
 % Live spectrum survey for finding the RT29 signal.
+% Uses the newer spectrumAnalyzer object instead of dsp.SpectrumAnalyzer.
+%
+% Example:
+%   survey_rt29(462515000, 2.4e6, 35)
 
-    if nargin < 1, center_freq_hz = 462562500; end
-    if nargin < 2, sample_rate_hz = 2.0e6; end
-    if nargin < 3, gain_db = 20; end
+    if nargin < 1, center_freq_hz = 462515000; end
+    if nargin < 2, sample_rate_hz = 2.4e6; end
+    if nargin < 3, gain_db = 35; end
 
     rx = comm.SDRRTLReceiver( ...
         'CenterFrequency', center_freq_hz, ...
@@ -14,30 +18,54 @@ function survey_rt29(center_freq_hz, sample_rate_hz, gain_db)
         'SamplesPerFrame', 4096, ...
         'OutputDataType', 'single');
 
-    sa = dsp.SpectrumAnalyzer( ...
-    'SampleRate', sample_rate_hz, ...
-    'CenterFrequency', center_freq_hz, ...
-    'Title', 'RT29 Survey Spectrum', ...
-    'SpectrumType', 'Power density', ...
-    'ShowLegend', false);
+    % For complex baseband input, use a two-sided spectrum.
+    % Use FrequencyOffset to shift the x-axis to absolute RF frequency.
+    sa = spectrumAnalyzer( ...
+        'Name', 'RT29 Survey Spectrum', ...
+        'Title', 'RT29 Survey Spectrum', ...
+        'InputDomain', 'time', ...
+        'SampleRate', sample_rate_hz, ...
+        'PlotAsTwoSidedSpectrum', true, ...
+        'SpectrumType', 'power-density', ...
+        'ViewType', 'spectrum-and-spectrogram', ...
+        'FrequencySpan', 'full', ...
+        'FrequencyOffset', center_freq_hz, ...
+        'ShowLegend', false, ...
+        'ShowGrid', true);
 
-    cleanupObj = onCleanup(@() cleanup(rx, sa));
+    cleanupObj = onCleanup(@() cleanup(rx, sa)); %#ok<NASGU>
 
-    fprintf('Survey running. Close the spectrum window or Ctrl+C to stop.\n');
+    fprintf('Survey running.\n');
+    fprintf('Center frequency: %.0f Hz | Sample rate: %.0f S/s | Gain: %.1f dB\n', ...
+        center_freq_hz, sample_rate_hz, gain_db);
+    fprintf('Close the spectrum window or press Ctrl+C to stop.\n');
 
     while true
         try
-            [x, len] = rx();
+            [x, len, lost] = rx();
         catch
-            [x, len, ~] = rx();
+            try
+                [x, len] = rx();
+                lost = 0;
+            catch
+                x = rx();
+                len = numel(x);
+                lost = 0;
+            end
         end
 
         if len > 0
             sa(x(1:len));
         end
 
+        if lost > 0
+            fprintf('Warning: lost %d samples\n', lost);
+        end
+
         drawnow limitrate;
-        if ~isvalid(sa)
+
+        % Break if user closes the scope
+        if ~isOpen(sa)
             break;
         end
     end
