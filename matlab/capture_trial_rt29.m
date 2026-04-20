@@ -76,6 +76,9 @@ function capture_trial_rt29(radio_id, trial_num, center_freq_hz, sample_rate_hz,
         'duration_s', 'note', 't0', 't1', 'dropped_total', ...
         '-v7');
 
+    radio_id = char(radio_id);
+    note = char(note);
+
     log_file = fullfile(logs_dir, 'capture_log.csv');
     append_capture_log(log_file, string(out_file), radio_id, trial_num, center_freq_hz, sample_rate_hz, gain_db, duration_s, note);
 

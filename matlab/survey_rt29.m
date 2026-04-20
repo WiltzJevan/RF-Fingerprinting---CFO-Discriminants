@@ -1,9 +1,6 @@
 function survey_rt29(center_freq_hz, sample_rate_hz, gain_db)
 % Live spectrum survey for finding the RT29 signal.
-% Uses the newer spectrumAnalyzer object instead of dsp.SpectrumAnalyzer.
-%
-% Example:
-%   survey_rt29(462515000, 2.4e6, 35)
+% Uses spectrumAnalyzer with absolute RF frequency on the x-axis.
 
     if nargin < 1, center_freq_hz = 462515000; end
     if nargin < 2, sample_rate_hz = 2.4e6; end
@@ -18,8 +15,6 @@ function survey_rt29(center_freq_hz, sample_rate_hz, gain_db)
         'SamplesPerFrame', 4096, ...
         'OutputDataType', 'single');
 
-    % For complex baseband input, use a two-sided spectrum.
-    % Use FrequencyOffset to shift the x-axis to absolute RF frequency.
     sa = spectrumAnalyzer( ...
         'Name', 'RT29 Survey Spectrum', ...
         'Title', 'RT29 Survey Spectrum', ...
@@ -28,19 +23,20 @@ function survey_rt29(center_freq_hz, sample_rate_hz, gain_db)
         'PlotAsTwoSidedSpectrum', true, ...
         'SpectrumType', 'power-density', ...
         'ViewType', 'spectrum-and-spectrogram', ...
-        'FrequencySpan', 'full', ...
+        'FrequencySpan', 'Full', ...
         'FrequencyOffset', center_freq_hz, ...
         'ShowLegend', false, ...
         'ShowGrid', true);
 
+    show(sa);
     cleanupObj = onCleanup(@() cleanup(rx, sa)); %#ok<NASGU>
 
     fprintf('Survey running.\n');
     fprintf('Center frequency: %.0f Hz | Sample rate: %.0f S/s | Gain: %.1f dB\n', ...
         center_freq_hz, sample_rate_hz, gain_db);
-    fprintf('Close the spectrum window or press Ctrl+C to stop.\n');
+    fprintf('Close the analyzer window or press Ctrl+C to stop.\n');
 
-    while true
+    while isVisible(sa)
         try
             [x, len, lost] = rx();
         catch
@@ -63,11 +59,6 @@ function survey_rt29(center_freq_hz, sample_rate_hz, gain_db)
         end
 
         drawnow limitrate;
-
-        % Break if user closes the scope
-        if ~isOpen(sa)
-            break;
-        end
     end
 end
 
