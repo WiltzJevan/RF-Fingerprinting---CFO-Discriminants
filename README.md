@@ -475,7 +475,7 @@ Relevant parameters include:
 - `steady_trim_s`
 - `transient_window_s`
 
-These values may need tuning depending on signal strength and capture quality. fileciteturn4file0
+These values may need tuning depending on signal strength and capture quality. 
 
 ---
 
