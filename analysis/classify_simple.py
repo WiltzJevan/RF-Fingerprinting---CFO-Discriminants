@@ -52,6 +52,7 @@ def evaluate(df: pd.DataFrame, feature_cols: list[str]) -> None:
 
 def main() -> int:
     df = pd.read_csv(FEATURES_CSV)
+    df = df[df['radio_id'].str.lower() != 'baseline'] #optional drop baseline here
     evaluate(df, ["cfo_hz"])
     evaluate(df, ["cfo_hz", "occupied_bw_hz", "spectral_centroid_hz"])
     evaluate(df, ["cfo_hz", "occupied_bw_hz", "spectral_centroid_hz", "rise_time_s", "transient_energy_ratio"])

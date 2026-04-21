@@ -1,4 +1,12 @@
+# Python artifacts
 **/__pycache__/
 *.pyc
-#data/raw/*.mat
-#data/processed/*.png
+
+# Exclude all regenerated data
+data/sliced/
+data/processed/
+logs/
+
+# Explicitly ignore everything in raw EXCEPT the .mat files
+data/raw/*
+!data/raw/*.mat

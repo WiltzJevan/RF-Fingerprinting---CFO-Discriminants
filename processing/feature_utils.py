@@ -15,6 +15,14 @@ def estimate_cfo_fft(iq: np.ndarray, fs: float) -> float:
     window = np.hanning(len(iq))
     spec = np.fft.fftshift(np.fft.fft(iq * window))
     freqs = np.fft.fftshift(np.fft.fftfreq(len(iq), d=1.0 / fs))
+
+    # --- Zero out the DC spike area ---
+    # We zero out the middle 1% of the spectrum (the DC spike)
+    center_idx = len(spec) // 2
+    notch_width = int(len(spec) * 0.01) # Adjust if the spike is wider
+    spec[center_idx - notch_width : center_idx + notch_width] = 0
+    # ---------------------------------------
+
     return float(freqs[int(np.argmax(np.abs(spec)))])
 
 def occupied_bandwidth(iq: np.ndarray, fs: float, frac: float = 0.99) -> float:

@@ -30,6 +30,7 @@ def save_box(df: pd.DataFrame, col: str, ylabel: str, fname: str):
 def main() -> int:
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(FEATURES_CSV)
+    df = df[df['radio_id'].str.lower() != 'baseline'] #optional drop baseline here
 
     plt.figure(figsize=(8, 5))
     for radio_id, sub in df.groupby("radio_id"):
