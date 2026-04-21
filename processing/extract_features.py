@@ -36,7 +36,11 @@ def main() -> int:
         S = load_mat_capture(str(file))
         iq = np.asarray(S["iq"]).astype(np.complex64).reshape(-1)
         fs = float(np.asarray(S["sample_rate_hz"]).squeeze())
-        radio_id = str(S.get("radio_id", "unknown"))
+        raw_id = S.get("radio_id", "unknown")
+        if isinstance(raw_id, np.ndarray):
+            radio_id = str(raw_id.item()) if raw_id.size > 0 else "unknown"
+        else:
+            radio_id = str(raw_id)
         trial = int(np.asarray(S.get("trial_num", -1)).squeeze())
         center_freq_hz = float(np.asarray(S["center_freq_hz"]).squeeze())
         gain_db = float(np.asarray(S["gain_db"]).squeeze())

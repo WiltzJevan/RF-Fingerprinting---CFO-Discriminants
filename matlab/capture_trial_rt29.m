@@ -42,10 +42,18 @@ function capture_trial_rt29(radio_id, trial_num, center_freq_hz, sample_rate_hz,
     idx = 1;
     dropped_total = 0;
 
-    fprintf('Starting capture: %s\n', out_file);
-    fprintf('Center freq: %.0f Hz | Sample rate: %.0f S/s | Gain: %.1f dB\n', ...
-        center_freq_hz, sample_rate_hz, gain_db);
+    %fprintf('Starting capture: %s\n', out_file);
+    %fprintf('Center freq: %.0f Hz | Sample rate: %.0f S/s | Gain: %.1f dB\n', ...
+    %    center_freq_hz, sample_rate_hz, gain_db);
 
+    %DELAY FOR SINGLE USER
+    fprintf('Starting capture: %s\n', out_file);
+    fprintf('You have 5 seconds to get into position...\n');
+    for countdown = 5:-1:1
+        fprintf('%d...\n', countdown);
+        pause(1); 
+    end
+    fprintf('LIVE! Key the radio now.\n');
     t0 = datetime('now');
 
     while idx <= total_samples
@@ -69,15 +77,14 @@ function capture_trial_rt29(radio_id, trial_num, center_freq_hz, sample_rate_hz,
     t1 = datetime('now');
 
     iq = iq(1:idx-1);
+    radio_id = char(radio_id);
+    note = char(note);
 
     save(out_file, ...
         'iq', 'radio_id', 'trial_num', 'timestamp', ...
         'center_freq_hz', 'sample_rate_hz', 'gain_db', ...
         'duration_s', 'note', 't0', 't1', 'dropped_total', ...
         '-v7');
-
-    radio_id = char(radio_id);
-    note = char(note);
 
     log_file = fullfile(logs_dir, 'capture_log.csv');
     append_capture_log(log_file, string(out_file), radio_id, trial_num, center_freq_hz, sample_rate_hz, gain_db, duration_s, note);
